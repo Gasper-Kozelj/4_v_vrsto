@@ -32,14 +32,18 @@ class Igra:
         else:
             self.kdo_je_na_vrsti = IGRALEC_1
     
+    def poln_stolpec(self, poteza):
+        return self.tabela[0][poteza - 1] != 0
+
+    def polni_stolpci(self):
+        sez = []
+        for i in range(self.sirina):
+            if self.tabela[0][i] != 0:
+                sez.append(i + 1)
+        return sez
+    
     def polna_tabela(self):
-        s = self.sirina
-        v = self.visina
-        for i in range(v):
-            for j in range(s):
-                if self.tabela[i][j] == 0:
-                    return False
-        return True
+        return len(self.polni_stolpci()) == self.sirina
 
     def izid(self):
         t = self.tabela

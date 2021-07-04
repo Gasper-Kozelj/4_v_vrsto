@@ -22,11 +22,16 @@ def izpis_izida(igra):
 
 def zahtevaj_potezo(igra):
     niz = input(f"Vnesite število od 1 do {igra.sirina}:")
-    st = int(niz)
-    while not (st in range(1, igra.sirina + 1) and niz.isnumeric() and len(niz) != 0):
-        niz = input(f"To pa ni možno. Izberite število od 1 do {igra.sirina}:")
+    if niz.isnumeric() and len(niz) > 0:
         st = int(niz)
-    return st
+        if st in range(1, igra.sirina + 1) and st not in igra.polni_stolpci():
+            return st
+    while True:
+        niz = input(f"To pa ni možno. Izberite število od 1 do {igra.sirina}:")
+        if niz.isnumeric() and len(niz) > 0:
+            st = int(niz)
+            if st in range(1, igra.sirina + 1) and st not in igra.polni_stolpci():
+                return st
 
 def nastavi_igro():
     s, v = 0, 0
@@ -55,5 +60,6 @@ def pozeni_vmesnik():
         stanje = igra.izid()
         if stanje != model.NI_SE_KONEC:
             print(izpis_izida(igra))
+            break
 
 pozeni_vmesnik()
