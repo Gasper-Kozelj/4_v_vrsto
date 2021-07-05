@@ -1,5 +1,8 @@
 import model
 
+PONOVNA_IGRA = "P"
+IZHOD = "I"
+
 def izpis_igre(igra):
     s = igra.sirina
     tekst = "\n" + (3 * s + 4) * "%" + "\n"
@@ -10,7 +13,8 @@ def izpis_igre(igra):
         tekst.strip(' ')
         tekst += '\n'
     tekst += (3 * s + 4) * "%" + "\n"
-    tekst += f"Na potezi je igralec {igra.kdo_je_na_vrsti}.\n"
+    if igra.izid() == model.NI_SE_KONEC:
+        tekst += f"Na potezi je igralec {igra.kdo_je_na_vrsti}.\n"
     return tekst
 
 def izpis_izida(igra):
@@ -56,6 +60,26 @@ def nastavi_igro():
                 break
     return [s, v]
 
+def ponudi_moznosti():
+    tekst = f"""Ali želita igrati ponovno?\n
+    {PONOVNA_IGRA}: Ponovna igra.
+    {IZHOD}: Izhod.
+    """
+    return tekst
+
+def zahtevaj_moznost():
+    return input("Vnesite možnost:")
+
+def izberi_ponovitev(kdo_prvi):
+    print(ponudi_moznosti())
+    izbira = zahtevaj_moznost().strip().upper()
+    if izbira == PONOVNA_IGRA:
+        sez = nastavi_igro()
+        igra = model.nova_igra(sez[0], sez[1], kdo_prvi)
+        return igra
+    else:
+        return IZHOD
+
 def pozeni_vmesnik():
     sez = nastavi_igro()
     igra = model.nova_igra(sez[0], sez[1])
@@ -67,6 +91,11 @@ def pozeni_vmesnik():
         stanje = igra.izid()
         if stanje != model.NI_SE_KONEC:
             print(izpis_izida(igra))
-            break
+            igra.zamenjaj_prvega()
+            kdo_prvi = igra.kdo_prvi
+            igra = izberi_ponovitev(kdo_prvi)
+            if igra == IZHOD:
+                break
+            print(izpis_igre(igra))
 
 pozeni_vmesnik()

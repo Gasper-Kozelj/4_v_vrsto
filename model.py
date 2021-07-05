@@ -20,6 +20,19 @@ class Igra:
         self.visina = visina
         self.tabela = nova_prazna_tabela(sirina, visina)
         self.kdo_je_na_vrsti = kdo_je_na_vrsti
+        self.kdo_prvi = kdo_je_na_vrsti
+    
+    def zamenjaj_prvega(self):
+        if self.kdo_prvi == IGRALEC_1:
+            self.kdo_prvi = IGRALEC_2
+        else:
+            self.kdo_prvi = IGRALEC_1
+
+    def zamenjaj_potezo(self):
+        if self.kdo_je_na_vrsti == IGRALEC_1:
+            self.kdo_je_na_vrsti = IGRALEC_2
+        else:
+            self.kdo_je_na_vrsti = IGRALEC_1
     
     def igraj(self, poteza):
         poteza -= 1
@@ -27,10 +40,7 @@ class Igra:
         while self.tabela[n][poteza] != 0:
             n -= 1
         self.tabela[n][poteza] = self.kdo_je_na_vrsti
-        if self.kdo_je_na_vrsti == IGRALEC_1:
-            self.kdo_je_na_vrsti = IGRALEC_2
-        else:
-            self.kdo_je_na_vrsti = IGRALEC_1
+        self.zamenjaj_potezo()
     
     def poln_stolpec(self, poteza):
         return self.tabela[0][poteza - 1] != 0
