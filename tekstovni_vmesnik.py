@@ -2,7 +2,7 @@ import model
 
 def izpis_igre(igra):
     s = igra.sirina
-    tekst = (3 * s + 4) * "%" + "\n"
+    tekst = "\n" + (3 * s + 4) * "%" + "\n"
     for sez in igra.tabela:
         tekst += '   '
         for znak in sez:
@@ -10,6 +10,7 @@ def izpis_igre(igra):
         tekst.strip(' ')
         tekst += '\n'
     tekst += (3 * s + 4) * "%" + "\n"
+    tekst += f"Na potezi je igralec {igra.kdo_je_na_vrsti}.\n"
     return tekst
 
 def izpis_izida(igra):
