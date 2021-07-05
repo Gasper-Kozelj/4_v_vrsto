@@ -35,18 +35,24 @@ def zahtevaj_potezo(igra):
 
 def nastavi_igro():
     s, v = 0, 0
-    while s < 4:
-        s = input("Vnesite širino plošče. Širina naj bo vsaj 4. Ali pa pritisnite tipko Enter za standardno širino:")
+    while True:
+        s = input("Vnesite širino plošče. Širina naj bo vsaj 4. Ali pa pritisnite samo tipko Enter za standardno širino:")
         if len(s) == 0:
             s = model.SIRINA
-        else:
+            break
+        elif s.isnumeric():
             s = int(s)
-    while v < 4:
-        v = input("Vnesite višino plošče. Višina naj bo vsaj 4. Ali pa pritisnite tipko Enter za standardno višino:")
+            if s >= 4:
+                break
+    while True:
+        v = input("Vnesite višino plošče. Višina naj bo vsaj 4. Ali pa pritisnite samo tipko Enter za standardno višino:")
         if len(v) == 0:
             v = model.VISINA
-        else:
+            break
+        elif v.isnumeric():
             v = int(v)
+            if v >= 4:
+                break
     return [s, v]
 
 def pozeni_vmesnik():
