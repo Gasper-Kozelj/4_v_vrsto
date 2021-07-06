@@ -14,16 +14,16 @@ def izpis_igre(igra):
         tekst += '\n'
     tekst += (3 * s + 4) * "%" + "\n"
     if igra.izid() == model.NI_SE_KONEC:
-        tekst += f"Na potezi je igralec {igra.kdo_je_na_vrsti}.\n"
+        tekst += f"Na potezi je {igra.kdo_je_na_vrsti}.\n"
     return tekst
 
 def izpis_izida(igra):
-    if igra.izid() == model.IGRALEC_1:
-        return "Zmagal je igralec 1."
-    elif igra.izid() == model.IGRALEC_2:
-        return "Zmagal je igralec 2."
+    if igra.izid() == igra.ime_1:
+        return f"Zmaga {igra.ime_1}."
+    elif igra.izid() == igra.ime_2:
+        return f"Zmaga {igra.ime_2}."
     elif igra.izid() == model.NEODLOCENO:
-        return "Izenačeno je."
+        return model.NEODLOCENO
 
 def zahtevaj_potezo(igra):
     niz = input(f"Vnesite število od 1 do {igra.sirina}:")
@@ -60,6 +60,15 @@ def nastavi_igro():
                 break
     return [s, v]
 
+def pridobi_imeni():
+    ime_1 = input(f"Vnesite ime prvega igralca (privzeto ime je {model.IGRALEC_1}):")
+    if ime_1 == "":
+        ime_1 = model.IGRALEC_1
+    ime_2 = input(f"Vnesite ime drugega igralca (privzeto ime je {model.IGRALEC_2}):")
+    if ime_2 == "":
+        ime_2 = model.IGRALEC_2
+    return [ime_1, ime_2]
+
 def ponudi_moznosti():
     tekst = f"""Ali želita igrati ponovno?\n
     {PONOVNA_IGRA}: Ponovna igra.
@@ -70,19 +79,20 @@ def ponudi_moznosti():
 def zahtevaj_moznost():
     return input("Vnesite možnost:")
 
-def izberi_ponovitev(kdo_prvi):
+def izberi_ponovitev(kdo_prvi, imeni):
     print(ponudi_moznosti())
     izbira = zahtevaj_moznost().strip().upper()
     if izbira == PONOVNA_IGRA:
         sez = nastavi_igro()
-        igra = model.nova_igra(sez[0], sez[1], kdo_prvi)
+        igra = model.nova_igra(sez[0], sez[1], kdo_prvi, imeni[0], imeni[1])
         return igra
     else:
         return IZHOD
 
 def pozeni_vmesnik():
+    imeni = pridobi_imeni()
     sez = nastavi_igro()
-    igra = model.nova_igra(sez[0], sez[1])
+    igra = model.nova_igra(sez[0], sez[1], imeni[0], imeni[0], imeni[1])
     print(izpis_igre(igra))
     while True:
         poteza = zahtevaj_potezo(igra)
@@ -93,7 +103,7 @@ def pozeni_vmesnik():
             print(izpis_izida(igra))
             igra.zamenjaj_prvega()
             kdo_prvi = igra.kdo_prvi
-            igra = izberi_ponovitev(kdo_prvi)
+            igra = izberi_ponovitev(kdo_prvi, imeni)
             if igra == IZHOD:
                 break
             print(izpis_igre(igra))
