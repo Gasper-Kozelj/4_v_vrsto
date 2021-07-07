@@ -1,11 +1,19 @@
+import random
+
 SIRINA = 7
 VISINA = 6
-
 ZETON_1 = 1
 ZETON_2 = 2
+
 IGRALEC_1 = "IGRALEC 1"
 IGRALEC_2 = "IGRALEC 2"
-NI_SE_KONEC = "D"
+NAKLJUCNO = "NAKLJUČNA POTEZA"
+IZBIRA_NAKLJUCNO = "N"
+RACUNALNIK = "RAČUNALNIK"
+IZBIRA_RACUNALNIK = "R"
+DVA_IGRALCA = "Drugo"
+
+NI_SE_KONEC = "Igraj naprej."
 NEODLOCENO = "Izenačeno je."
 
 def nova_prazna_tabela(sirina, visina):
@@ -48,6 +56,9 @@ class Igra:
         else:
             self.tabela[n][poteza] = ZETON_2
         self.zamenjaj_potezo()
+
+    def nakljucna_poteza(self):
+        return random.choice(range(1, self.sirina + 1))
     
     def poln_stolpec(self, poteza):
         return self.tabela[0][poteza - 1] != 0
@@ -104,5 +115,5 @@ class Igra:
         else:
             return NI_SE_KONEC
 
-def nova_igra(s=SIRINA, v=VISINA, kdo_je_na_vrsti=IGRALEC_1, ime_1=IGRALEC_1, ime_2=IGRALEC_2):
+def nova_igra(s, v, kdo_je_na_vrsti, ime_1, ime_2):
     return Igra(s, v, kdo_je_na_vrsti, ime_1, ime_2)
