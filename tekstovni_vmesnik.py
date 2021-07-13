@@ -28,22 +28,20 @@ def izpis_izida(igra):
 def zahtevaj_potezo(igra, nacin):
     if nacin == model.IZBIRA_NAKLJUCNO:
         if igra.kdo_je_na_vrsti == model.NAKLJUCNO:
-            while True:
-                poteza = igra.nakljucna_poteza()
-                if poteza not in igra.polni_stolpci():
-                    return igra.nakljucna_poteza()
+            return igra.nakljucna_poteza()
     if nacin == model.IZBIRA_RACUNALNIK:
-        pass
+        if igra.kdo_je_na_vrsti == model.RACUNALNIK:
+            return igra.poteza_racunalnika()
     niz = input(f"Vnesite število od 1 do {igra.sirina}:")
     if niz.isnumeric() and len(niz) > 0:
-        st = int(niz)
-        if st in range(1, igra.sirina + 1) and st not in igra.polni_stolpci():
+        st = int(niz) - 1
+        if st in igra.mozni_stolpci():
             return st
     while True:
         niz = input(f"To pa ni možno. Izberite število od 1 do {igra.sirina}:")
         if niz.isnumeric() and len(niz) > 0:
-            st = int(niz)
-            if st in range(1, igra.sirina + 1) and st not in igra.polni_stolpci():
+            st = int(niz) - 1
+            if st in igra.mozni_stolpci():
                 return st
 
 def nastavi_dimenzije():

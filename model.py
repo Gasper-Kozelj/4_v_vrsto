@@ -1,4 +1,5 @@
 import random
+import math
 
 SIRINA = 7
 VISINA = 6
@@ -15,6 +16,8 @@ DVA_IGRALCA = "Drugo"
 
 NI_SE_KONEC = "Igraj naprej."
 NEODLOCENO = "Izenačeno je."
+
+DOLZINA_ZA_ZMAGO = 4
 
 def nova_prazna_tabela(sirina, visina):
     sez = []
@@ -45,12 +48,15 @@ class Igra:
             self.kdo_je_na_vrsti = self.ime_2
         else:
             self.kdo_je_na_vrsti = self.ime_1
-    
+
     def igraj(self, poteza):
-        poteza -= 1
         n = self.visina - 1
-        while self.tabela[n][poteza] != 0:
+        vrstica = self.tabela[n]
+        pozicija = vrstica[poteza]
+        while pozicija != 0:
             n -= 1
+            vrstica = self.tabela[n]
+            pozicija = vrstica[poteza]
         if self.kdo_je_na_vrsti == self.ime_1:
             self.tabela[n][poteza] = ZETON_1
         else:
@@ -58,20 +64,18 @@ class Igra:
         self.zamenjaj_potezo()
 
     def nakljucna_poteza(self):
-        return random.choice(range(1, self.sirina + 1))
-    
-    def poln_stolpec(self, poteza):
-        return self.tabela[0][poteza - 1] != 0
+        return random.choice(self.mozni_stolpci())
 
-    def polni_stolpci(self):
+    def mozni_stolpci(self):
+        zgornja_vrstica = self.tabela[0]
         sez = []
         for i in range(self.sirina):
-            if self.tabela[0][i] != 0:
-                sez.append(i + 1)
+            if zgornja_vrstica[i] == 0:
+                sez.append(i)
         return sez
     
     def polna_tabela(self):
-        return len(self.polni_stolpci()) == self.sirina
+        return len(self.mozni_stolpci()) == 0
 
     def izid(self):
         t = self.tabela
@@ -114,6 +118,139 @@ class Igra:
             return NEODLOCENO
         else:
             return NI_SE_KONEC
+
+    def kopiraj(self):
+        novo = nova_igra(self.sirina, self.visina, self.kdo_je_na_vrsti, self.ime_1, self.ime_2)
+        return novo
+    
+    def otroci(self):
+        otroci = []
+        for i in range(self.sirina):
+            if i in self.mozni_stolpci():
+                otrok = self.kopiraj()
+                otrok.igraj(i)
+                otroci.append((i, otrok))
+        return otroci
+
+    def oceni_stanje(self, zeton=ZETON_2):
+        nasprotnik = ZETON_1
+        if zeton == ZETON_1:
+            nasprotnik = ZETON_2
+        ocena = 0
+        t = self.tabela
+        s = self.sirina
+        v = self.visina
+        # vodoravno
+        for i in range(v):
+            for j in range(s - 3):
+                # prištejemo oceno za žetone računalnika
+                if t[i][j] == t[i][j + 1] == zeton:
+                    ocena += 10
+                if t[i][j] == t[i][j + 1] == t[i][j + 2] == zeton:
+                    ocena += 100
+                if t[i][j] == t[i][j + 1] == t[i][j + 2] == t[i][j + 3] == zeton:
+                    ocena += 10000
+                # odštejemo oceno za žetone igralca
+                if t[i][j] == t[i][j + 1] == nasprotnik:
+                    ocena -= 10
+                if t[i][j] == t[i][j + 1] == t[i][j + 2] == nasprotnik:
+                    ocena -= 100
+                if t[i][j] == t[i][j + 1] == t[i][j + 2] == t[i][j + 3] == nasprotnik:
+                    ocena -= 10000
+        # navpično
+        for i in range(v - 3):
+            for j in range(s):
+                # prištejemo oceno za žetone računalnika
+                if t[i][j] == t[i + 1][j] == zeton:
+                    ocena += 10
+                if t[i][j] == t[i + 1][j] == t[i + 2][j] == zeton:
+                    ocena += 100
+                if t[i][j] == t[i + 1][j] == t[i + 2][j] == t[i + 3][j] == zeton:
+                    ocena += 10000
+                # odštejemo oceno za žetone igralca
+                if t[i][j] == t[i + 1][j] == nasprotnik:
+                    ocena -= 10
+                if t[i][j] == t[i + 1][j] == t[i + 2][j] == nasprotnik:
+                    ocena -= 100
+                if t[i][j] == t[i + 1][j] == t[i + 2][j] == t[i + 3][j] == nasprotnik:
+                    ocena -= 10000
+        # diagonale s pozitivnim smernim koeficientom
+        for i in range(3, v):
+            for j in range(s - 3):
+                if t[i][j] == t[i - 1][j + 1] == zeton:
+                    ocena += 10
+                if t[i][j] == t[i - 1][j + 1] == t[i - 2][j + 2] == zeton:
+                    ocena += 100
+                if t[i][j] == t[i - 1][j + 1] == t[i - 2][j + 2] == t[i - 3][j + 3] == zeton:
+                    ocena += 10000
+                if t[i][j] == t[i - 1][j + 1] == nasprotnik:
+                    ocena -= 10
+                if t[i][j] == t[i - 1][j + 1] == t[i - 2][j + 2] == nasprotnik:
+                    ocena -= 100
+                if t[i][j] == t[i - 1][j + 1] == t[i - 2][j + 2] == t[i - 3][j + 3] == nasprotnik:
+                    ocena -= 10000
+        # diagonale z negativnim smernim koeficientom
+        for i in range(v - 3):
+            for j in range(s - 3):
+                if t[i][j] == t[i + 1][j + 1] == zeton:
+                    ocena += 10
+                if t[i][j] == t[i + 1][j + 1] == t[i + 2][j + 2] == zeton:
+                    ocena += 100
+                if t[i][j] == t[i + 1][j + 1] == t[i + 2][j + 2] == t[i + 3][j + 3] == zeton:
+                    ocena += 10000
+                if t[i][j] == t[i + 1][j + 1] == nasprotnik:
+                    ocena -= 10
+                if t[i][j] == t[i + 1][j + 1] == t[i + 2][j + 2] == nasprotnik:
+                    ocena -= 100
+                if t[i][j] == t[i + 1][j + 1] == t[i + 2][j + 2] == t[i + 3][j + 3] == nasprotnik:
+                    ocena -= 10000
+        return ocena
+
+    def minimax(self, globina, maximizingPlayer, alfa, beta):
+        izid = self.izid()
+        otroci = self.otroci()
+        if globina == 0 or izid != NI_SE_KONEC:
+            if izid != NI_SE_KONEC:
+                if izid == self.ime_1:
+                    return (None, -1000000)
+                elif izid == self.ime2:
+                    return (None, 1000000)
+                else:
+                    return (None, 0)
+            else:
+                return (None, self.oceni_stanje(ZETON_2))
+        if maximizingPlayer:
+            naj_stolpec = self.nakljucna_poteza()
+            naj_vrednost = -math.inf
+            for otrok in otroci:
+                stolpec, igra_otrok = otrok
+                nova_globina = globina - 1
+                _, nova_vrednost = igra_otrok.minimax(nova_globina, False, alfa, beta)
+                if nova_vrednost > naj_vrednost:
+                    naj_vrednost = nova_vrednost
+                    naj_stolpec = stolpec
+                alfa = max(alfa, naj_vrednost)
+                if alfa >= beta:
+                    break
+            return (naj_stolpec, naj_vrednost)
+        else:
+            naj_stolpec = self.nakljucna_poteza()
+            naj_vrednost = math.inf
+            for otrok in otroci:
+                stolpec, igra_otrok = otrok
+                nova_globina = globina - 1
+                _, nova_vrednost = igra_otrok.minimax(nova_globina, True, alfa, beta)
+                if nova_vrednost < naj_vrednost:
+                    naj_vrednost = nova_vrednost
+                    naj_stolpec = stolpec
+                beta = min(beta, naj_vrednost)
+                if alfa >= beta:
+                    break
+            return (naj_stolpec, naj_vrednost)
+
+    def poteza_racunalnika(self):
+        stolpec, _ = self.minimax(5, True, -math.inf, math.inf)
+        return stolpec
 
 def nova_igra(s, v, kdo_je_na_vrsti, ime_1, ime_2):
     return Igra(s, v, kdo_je_na_vrsti, ime_1, ime_2)
