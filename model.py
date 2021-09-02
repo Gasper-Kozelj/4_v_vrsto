@@ -1,5 +1,6 @@
 import random
 import math
+import json
 
 SIRINA = 7
 VISINA = 6
@@ -19,6 +20,8 @@ NEODLOCENO = "Izenačeno je."
 
 DOLZINA_ZA_ZMAGO = 4
 
+ZACETEK = "Z"
+
 def nova_prazna_tabela(sirina, visina):
     sez = []
     for i in range(visina):
@@ -28,10 +31,10 @@ def nova_prazna_tabela(sirina, visina):
     return sez
 
 class Igra:
-    def __init__(self, sirina, visina, kdo_je_na_vrsti, ime_1, ime_2):
+    def __init__(self, sirina, visina, tabela, kdo_je_na_vrsti, ime_1, ime_2):
         self.sirina = sirina
         self.visina = visina
-        self.tabela = nova_prazna_tabela(sirina, visina)
+        self.tabela = tabela
         self.kdo_je_na_vrsti = kdo_je_na_vrsti
         self.kdo_prvi = kdo_je_na_vrsti
         self.ime_1 = ime_1
@@ -120,7 +123,7 @@ class Igra:
             return NI_SE_KONEC
 
     def kopiraj(self):
-        novo = nova_igra(self.sirina, self.visina, self.kdo_je_na_vrsti, self.ime_1, self.ime_2)
+        novo = nova_igra(self.sirina, self.visina, self.tabela, self.kdo_je_na_vrsti, self.ime_1, self.ime_2)
         return novo
     
     def otroci(self):
@@ -251,6 +254,66 @@ class Igra:
     def poteza_racunalnika(self):
         stolpec, _ = self.minimax(5, True, -math.inf, math.inf)
         return stolpec
+    
+    def pozicije_krogov(self):
+        pozicije = []
+        for i in range(self.visina):
+            for j in range(self.sirina):
+                x = j * 100 + 50
+                y = i * 100 + 50
+                pozicije.append([i, j, x, y])
+        return pozicije
 
 def nova_igra(s, v, kdo_je_na_vrsti, ime_1, ime_2):
-    return Igra(s, v, kdo_je_na_vrsti, ime_1, ime_2)
+    tabela = nova_prazna_tabela(s, v)
+    return Igra(s, v, tabela, kdo_je_na_vrsti, ime_1, ime_2)
+
+class StiriVVrsto:
+    def __init__(self, datoteka_s_stanjem):
+        self.igre = {}
+        self.datoteka_s_stanjem = datoteka_s_stanjem
+    
+    def prost_id_igre(self):
+        if len(self.igre) == 0:
+            return 0
+        else:
+            return max(self.igre.keys()) + 1
+    
+    def nova_igra(self):
+        self.nalozi_igre_iz_datoteke()
+        id_igre = self.prost_id_igre()
+        if id_igre == 0:
+            igra = nova_igra(SIRINA, VISINA, IGRALEC_1, IGRALEC_1, IGRALEC_2)
+            kdo_je_na_vrsti = igra.kdo_je_na_vrsti
+        else:
+            prejsnja_igra = self.igre[id_igre - 1][0]
+            prejsnja_igra.zamenjaj_prvega()
+            s = prejsnja_igra.sirina
+            v = prejsnja_igra.visina
+            kdo_prvi = prejsnja_igra.kdo_prvi
+            ime_1 = prejsnja_igra.ime_1
+            ime_2 = prejsnja_igra.ime_2
+            igra = nova_igra(s, v, kdo_prvi, ime_1, ime_2)
+            kdo_je_na_vrsti = igra.kdo_je_na_vrsti
+        self.igre[id_igre] = (igra, ZACETEK, kdo_je_na_vrsti)
+        self.zapisi_igre_v_datoteko()
+        return id_igre
+    
+    def igraj(self, id_igre, poteza):
+        self.nalozi_igre_iz_datoteke()
+        igra = self.igre[id_igre][0]
+        igra.igraj(poteza)
+        stanje = igra.izid()
+        kdo_je_na_vrsti = igra.kdo_je_na_vrsti
+        self.igre[id_igre] = (igra, stanje, kdo_je_na_vrsti)
+        self.zapisi_igre_v_datoteko()
+    
+    def zapisi_igre_v_datoteko(self):
+        with open(self.datoteka_s_stanjem, 'w') as f:
+            igre_predelano = {id_igre: ((igra.sirina, igra.visina, igra.tabela, igra.kdo_je_na_vrsti, igra.ime_1, igra.ime_2), stanje, kdo_je_na_vrsti) for (id_igre, (igra, stanje, kdo_je_na_vrsti)) in self.igre.items()}
+            json.dump(igre_predelano, f, ensure_ascii=False)
+    
+    def nalozi_igre_iz_datoteke(self):
+        with open(self.datoteka_s_stanjem, 'r') as f:
+            igre_predelano = json.load(f)
+            self.igre = {int(id_igre): ((Igra(sirina, visina, tabela, kdo, ime_1, ime_2)), stanje, kdo_je_na_vrsti) for (id_igre, ((sirina, visina, tabela, kdo, ime_1, ime_2), stanje, kdo_je_na_vrsti)) in igre_predelano.items()}
